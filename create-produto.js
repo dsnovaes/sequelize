@@ -2,16 +2,15 @@ const Sequelize = require('sequelize');
 const database = require('./db');
 
 (async () => {
-    const database = require('./db');
     const Produto = require('./produto');
 
     try {
         const resultado = await database.sync();
         const resultadoCreate = await Produto.create({
-            nome: 'JBL Everest Elite 700',
-            preco: 199.00,
+            nome: 'Airpods 3rd Gen',
+            preco: 189.00,
             categoria: 2,
-            descricao: 'Não é fone de ouvido, é headphone'
+            descricao: 'Última geração dos Airpods'
         })
         console.log(resultadoCreate);
     } catch (error) {

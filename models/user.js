@@ -1,8 +1,8 @@
 const Sequelize = require('sequelize');
-const database = require('./db');
+const database = require('../db');
 
-const Produto = database.define('produto', {
-    produto_id: {
+const User = database.define('user', {
+    user_id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
         allowNull: false,
@@ -12,19 +12,15 @@ const Produto = database.define('produto', {
         type: Sequelize.STRING,
         allowNull: false
     },
-    categoria: {
-        type: Sequelize.INTEGER
-    },
-    preco: {
-        type: Sequelize.DECIMAL
-    },
-    descricao: Sequelize.STRING
+    email: Sequelize.STRING,
+    cep: Sequelize.STRING,
+    aniversario: Sequelize.DATE
 }, {
-    tableName: 'produtos',
+    tableName: 'usuarios',
     // If don't want createdAt
     createdAt: false,
     // If don't want updatedAt
     updatedAt: false,
 });
 
-module.exports = Produto;
+module.exports = User;

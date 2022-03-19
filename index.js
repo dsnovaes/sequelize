@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+
 const bodyParser = require('body-parser');
 const port = 3000; //porta padrão
 const database = require('./db');
@@ -16,15 +17,15 @@ app.use('/', router);
 
 //inicia o servidor
 app.listen(port);
-console.log('API funcionando!');
+console.log('API funcionando! 🚀');
 
 router.get('/', (req, res) => res.json({ message: 'Funcionando!' }));
 
 // usuarios
 
-router.get('/usuarios', (req, res) => {
+router.get('/v1/usuarios', (req, res) => {
     (async () => {
-        const User = require('./user');
+        const User = require('./models/user');
 
         try {
             const resultado = await database.sync();
@@ -37,11 +38,11 @@ router.get('/usuarios', (req, res) => {
     })();
 })
 
-router.get('/usuarios/:id', (req, res) => {
+router.get('/v1/usuarios/:id?', (req, res) => {
 
     const { id } = req.params;
     (async () => {
-        const User = require('./user');
+        const User = require('./models/user');
 
         try {
             const result = await User.findByPk(id);
@@ -62,14 +63,23 @@ router.get('/usuarios/:id', (req, res) => {
 
 // produtos
 
-router.get('/produtos', (req, res) => {
-    const { resultsPerPage, lastPageViewed } = req.query;
+router.get('/v1/produtos', (req, res) => {
+    var { resultsPerPage, lastPageViewed } = req.query;
+    if (resultsPerPage == null) {
+        resultsPerPage = 10
+    }
+    if (lastPageViewed == null) {
+        lastPageViewed = 0
+    }
+    resultsPerPage = parseInt(resultsPerPage);
+    lastPageViewed = parseInt(lastPageViewed);
+
     (async () => {
-        const Produto = require('./produto');
+        const Produto = require('./models/produto');
 
         try {
             const resultado = await database.sync();
-            const result = await Produto.findAndCountAll({
+            const result = await Produto.findAll({ //findAndCountAll se quiser a contagem total de resultados
                 limit: resultsPerPage,
                 offset: lastPageViewed
             });
@@ -81,11 +91,11 @@ router.get('/produtos', (req, res) => {
     })();
 })
 
-router.get('/produtos/:id', (req, res) => {
+router.get('/v1/produtos/:id', (req, res) => {
 
     const { id } = req.params;
     (async () => {
-        const Produto = require('./produto');
+        const Produto = require('./models/produto');
 
         try {
             const result = await Produto.findByPk(id);
@@ -96,6 +106,56 @@ router.get('/produtos/:id', (req, res) => {
                 return res.json(result);
             }
 
+        } catch (error) {
+            console.log(error);
+        }
+
+    })();
+})
+
+router.post('/v1/produtos', (req, res) => {
+    const { name, price, category, desc } = req.body;
+
+    (async () => {
+        const Produto = require('./models/produto');
+
+        try {
+            const resultado = await database.sync();
+            const resultadoCreate = await Produto.create({
+                nome: name,
+                preco: price,
+                categoria: category,
+                descricao: desc
+            })
+            return res.json(resultadoCreate)
+        } catch (error) {
+            console.log(error);
+        }
+
+    })();
+})
+
+router.put('/v1/produtos/:id', (req, res) => {
+    const { name, price, category, desc } = req.body;
+    const { id } = req.params;
+
+    (async () => {
+        const Produto = require('./models/produto');
+
+        try {
+            const produto = await Produto.findByPk(id);
+            if (produto === null) {
+                return res.status(400).json({ error: 'Product not found.' })
+            }
+            else {
+                produto.nome = name;
+                produto.preco = price;
+                produto.categoria = category;
+                produto.descricao = desc;
+
+                const resultadoSave = await produto.save();
+                return res.json(resultadoSave)
+            }
         } catch (error) {
             console.log(error);
         }

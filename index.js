@@ -79,7 +79,7 @@ router.get('/v1/produtos', (req, res) => {
 
         try {
             const resultado = await database.sync();
-            const result = await Produto.findAll({ //findAndCountAll se quiser a contagem total de resultados
+            const result = await Produto.findAll({ //findAndCountAll, se quiser a contagem total de resultados
                 limit: resultsPerPage,
                 offset: lastPageViewed
             });
@@ -156,6 +156,79 @@ router.put('/v1/produtos/:id', (req, res) => {
                 const resultadoSave = await produto.save();
                 return res.json(resultadoSave)
             }
+        } catch (error) {
+            console.log(error);
+        }
+
+    })();
+})
+
+
+// pedidos
+
+router.get('/v1/pedidos', (req, res) => {
+    var { resultsPerPage, lastPageViewed } = req.query;
+    if (resultsPerPage == null) {
+        resultsPerPage = 10
+    }
+    if (lastPageViewed == null) {
+        lastPageViewed = 0
+    }
+    resultsPerPage = parseInt(resultsPerPage);
+    lastPageViewed = parseInt(lastPageViewed);
+
+    (async () => {
+        const Pedido = require('./models/pedido');
+
+        try {
+            const resultado = await database.sync();
+            const result = await Pedido.findAll({ //findAndCountAll, se quiser a contagem total de resultados
+                limit: resultsPerPage,
+                offset: lastPageViewed
+            });
+            res.json(result);
+        } catch (error) {
+            console.log(error);
+        }
+
+    })();
+})
+
+router.get('/v1/pedidos/:id', (req, res) => {
+
+    const { id } = req.params;
+    (async () => {
+        const Pedido = require('./models/pedido');
+
+        try {
+            const result = await Pedido.findByPk(id);
+            if (result === null) {
+                return res.status(400).json({ error: 'Order not found.' })
+            }
+            else {
+                return res.json(result);
+            }
+
+        } catch (error) {
+            console.log(error);
+        }
+
+    })();
+})
+
+router.post('/v1/pedidos', (req, res) => {
+    const { products, user } = req.body;
+
+    (async () => {
+        const Pedido = require('./models/pedido');
+
+        try {
+            const resultado = await database.sync();
+            const resultadoCreate = await Pedido.create({
+                produtos: products,
+                usuario: user
+            })
+            return res.json(resultadoCreate)
         } catch (error) {
             console.log(error);
         }

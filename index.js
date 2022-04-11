@@ -113,7 +113,49 @@ router.get('/v1/produtos/:id', (req, res) => {
     })();
 })
 
-router.post('/v1/produtos', (req, res) => {
+
+
+function getRandom6Digits() {
+    var code1 = "123456789";
+    var code2 = "0123456789"; var result = "";
+    result = code1[Math.floor(Math.random() * 9)];
+    for (var i = 0; i < 5; i++) {
+        result += code2[Math.floor(Math.random() * 10)];
+
+    }
+    return result;
+}
+
+function idExists(req, res, next) {
+    const id_produto = getRandom6Digits();
+
+    (async () => {
+        const Produto = require('./models/produto');
+        try {
+            const result = await Produto.findByPk(id_produto);
+            if (result === null) {
+
+                console.log("ID não existe");
+                return true;
+            }
+            else {
+
+                console.log("ID  existe");
+                return false;
+            }
+
+        } catch (error) {
+            console.log(error);
+        }
+
+    })();
+
+    console.log(id_produto);
+
+    return next();
+}
+
+router.post('/v1/produtos', idExists, (req, res,) => {
     const { name, price, category, desc } = req.body;
 
     (async () => {
@@ -122,6 +164,7 @@ router.post('/v1/produtos', (req, res) => {
         try {
             const resultado = await database.sync();
             const resultadoCreate = await Produto.create({
+                produto_id: id_produto, // colocar aqui o id
                 nome: name,
                 preco: price,
                 categoria: category,
@@ -226,7 +269,8 @@ router.post('/v1/pedidos', (req, res) => {
             const resultado = await database.sync();
             const resultadoCreate = await Pedido.create({
                 produtos: products,
-                usuario: user
+                usuario: user,
+                data_pedido: Date.now()
             })
             return res.json(resultadoCreate)
         } catch (error) {

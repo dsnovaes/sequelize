@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const port = 3000; //porta padrão
 const database = require('./db');
 var request = require('request');
+const { response } = require('express');
 
 //configurando o body parser para pegar POSTS mais tarde
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -85,7 +86,7 @@ router.get('/v1/produtos', (req, res) => {
             });
             res.json(result);
         } catch (error) {
-            console.log(error);
+            console.error(error);
         }
 
     })();
@@ -107,7 +108,7 @@ router.get('/v1/produtos/:id', (req, res) => {
             }
 
         } catch (error) {
-            console.log(error);
+            console.error(error);
         }
 
     })();
@@ -126,31 +127,29 @@ function getRandom6Digits() {
     return result;
 }
 
+var id_produto = getRandom6Digits();
+
 function idExists(req, res, next) {
-    const id_produto = getRandom6Digits();
 
     (async () => {
         const Produto = require('./models/produto');
         try {
             const result = await Produto.findByPk(id_produto);
             if (result === null) {
-
-                console.log("ID não existe");
-                return true;
+                console.log(`ID ${id_produto} não existe na base`);
             }
             else {
-
-                console.log("ID  existe");
-                return false;
+                console.log(`ID ${id_produto} já existe na base`);
+                console.log("Gerando novo ID");
+                id_produto = getRandom6Digits();
+                console.log(`Novo ID ${id_produto} gerado`);
             }
 
         } catch (error) {
-            console.log(error);
+            console.error(error);
         }
 
     })();
-
-    console.log(id_produto);
 
     return next();
 }
@@ -164,7 +163,7 @@ router.post('/v1/produtos', idExists, (req, res,) => {
         try {
             const resultado = await database.sync();
             const resultadoCreate = await Produto.create({
-                produto_id: id_produto, // colocar aqui o id
+                produto_id: id_produto,
                 nome: name,
                 preco: price,
                 categoria: category,
@@ -172,7 +171,11 @@ router.post('/v1/produtos', idExists, (req, res,) => {
             })
             return res.json(resultadoCreate)
         } catch (error) {
-            console.log(error);
+            if (error.parent.code === "ER_DUP_ENTRY") {
+                console.error("❌ ⛔️ Entrada duplicada ⛔️ ❌");
+            } else {
+                console.error(error);
+            }
         }
 
     })();
@@ -200,7 +203,7 @@ router.put('/v1/produtos/:id', (req, res) => {
                 return res.json(resultadoSave)
             }
         } catch (error) {
-            console.log(error);
+            console.error(error);
         }
 
     })();
@@ -253,7 +256,7 @@ router.get('/v1/pedidos/:id', (req, res) => {
             }
 
         } catch (error) {
-            console.log(error);
+            console.error(error);
         }
 
     })();
@@ -274,7 +277,7 @@ router.post('/v1/pedidos', (req, res) => {
             })
             return res.json(resultadoCreate)
         } catch (error) {
-            console.log(error);
+            console.error(error);
         }
 
     })();

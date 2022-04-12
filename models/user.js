@@ -14,7 +14,8 @@ const User = database.define('user', {
     },
     email: Sequelize.STRING,
     cep: Sequelize.STRING,
-    aniversario: Sequelize.DATE
+    aniversario: Sequelize.DATE,
+    novo_id: Sequelize.STRING,
 }, {
     tableName: 'usuarios',
     // If don't want createdAt

@@ -61,6 +61,28 @@ router.get('/v1/usuarios/:id?', (req, res) => {
     })();
 })
 
+router.post('/v1/usuarios', (req, res) => {
+    const { nome, email, cep, aniversario } = req.body;
+
+    (async () => {
+        const User = require('./models/user');
+
+        try {
+            const resultado = await database.sync();
+            const resultadoCreate = await User.create({
+                nome: nome,
+                email: email,
+                cep: cep,
+                aniversario: aniversario
+            })
+            return res.json(resultadoCreate)
+        } catch (error) {
+            console.error(error);
+        }
+
+    })();
+})
+
 
 // produtos
 
@@ -99,7 +121,7 @@ router.get('/v1/produtos/:id', (req, res) => {
         const Produto = require('./models/produto');
 
         try {
-            const result = await Produto.findByPk(id);
+            const result = await Produto.create();
             if (result === null) {
                 return res.status(400).json({ error: 'Product not found.' })
             }
@@ -114,11 +136,11 @@ router.get('/v1/produtos/:id', (req, res) => {
     })();
 })
 
-
+var id_produto;
 
 function getRandom6Digits() {
     var code1 = "123456789";
-    var code2 = "0123456789"; var result = "";
+    var code2 = "0123456789"; var result;
     result = code1[Math.floor(Math.random() * 9)];
     for (var i = 0; i < 5; i++) {
         result += code2[Math.floor(Math.random() * 10)];
@@ -127,12 +149,11 @@ function getRandom6Digits() {
     return result;
 }
 
-var id_produto = getRandom6Digits();
-
-function idExists(req, res, next) {
+function createsID(req, res, next) {
 
     (async () => {
         const Produto = require('./models/produto');
+        id_produto = getRandom6Digits();
         try {
             const result = await Produto.findByPk(id_produto);
             if (result === null) {
@@ -146,7 +167,11 @@ function idExists(req, res, next) {
             }
 
         } catch (error) {
-            console.error(error);
+            if (error.parent.code === "ER_DUP_ENTRY") {
+                console.error("❌ ⛔️ Entrada duplicada ⛔️ ❌");
+            } else {
+                console.error(error);
+            }
         }
 
     })();
@@ -154,7 +179,8 @@ function idExists(req, res, next) {
     return next();
 }
 
-router.post('/v1/produtos', idExists, (req, res,) => {
+
+router.post('/v1/produtos', createsID, (req, res,) => {
     const { name, price, category, desc } = req.body;
 
     (async () => {
@@ -171,11 +197,7 @@ router.post('/v1/produtos', idExists, (req, res,) => {
             })
             return res.json(resultadoCreate)
         } catch (error) {
-            if (error.parent.code === "ER_DUP_ENTRY") {
-                console.error("❌ ⛔️ Entrada duplicada ⛔️ ❌");
-            } else {
-                console.error(error);
-            }
+            console.error(error);
         }
 
     })();

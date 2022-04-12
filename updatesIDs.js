@@ -20,35 +20,34 @@ app.use('/', router);
 app.listen(port);
 console.log('Testando foreach');
 
-router.get('/', (req, res) => res.json({ message: 'Funcionando!' }));
-
 
 // produtos
 
-router.get('/v1/produtos', (req, res) => {
-    var { resultsPerPage, lastPageViewed } = req.query;
-    if (resultsPerPage == null) {
-        resultsPerPage = 10
-    }
-    if (lastPageViewed == null) {
-        lastPageViewed = 0
-    }
-    resultsPerPage = parseInt(resultsPerPage);
-    lastPageViewed = parseInt(lastPageViewed);
+router.get('/v1/updateUser', (req, res) => {
+
+    var usuariosTemp =[];
 
     (async () => {
-        const Produto = require('./models/produto');
+        const User = require('./models/user');
 
         try {
-            const resultado = await database.sync();
-            const result = await Produto.findAll({ //findAndCountAll, se quiser a contagem total de resultados
-                limit: resultsPerPage,
-                offset: lastPageViewed
+            const result = await User.findAll();
+
+            result.forEach(User => {
+                usuariosTemp.push(User.nome)
+        
             });
+
+            console.log(usuariosTemp);
+
+
             res.json(result);
+
+
         } catch (error) {
             console.error(error);
         }
 
     })();
+    
 })
